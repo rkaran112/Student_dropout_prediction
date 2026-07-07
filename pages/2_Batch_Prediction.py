@@ -42,8 +42,15 @@ if uploaded_file is not None:
         )
         st.stop()
 
-    X_processed_df, X_processed = prepare_features_from_df(df_raw, artifacts)
-    probs = model.predict_proba(X_processed)[:, 1]
+    try:
+        X_processed_df, X_processed = prepare_features_from_df(df_raw, artifacts)
+        probs = model.predict_proba(X_processed)[:, 1]
+    except ValueError as e:
+        st.error(
+            "Could not process the uploaded data. Please check that categorical and "
+            f"numeric columns contain only values seen during training.\n\nDetails: {e}"
+        )
+        st.stop()
 
     risk_labels = [compute_risk_category(p) for p in probs]
     recommendations = [recommendation_for_risk(c) for c in risk_labels]
