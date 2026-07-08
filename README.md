@@ -64,4 +64,4 @@ From `model/metrics.txt` (Random Forest, test set):
 
 ## Status
 
-**Complete / working end-to-end.** The training pipeline, saved model artifacts, and all four Streamlit pages are implemented (no stub functions or TODOs found in the source). Not independently verified by running the app in this pass — review the code before deploying to production, and note there are no automated tests in the repo.
+**Complete / working end-to-end.** The training pipeline, saved model artifacts, and all four Streamlit pages are implemented (no stub functions or TODOs found in the source). Not independently verified by running the app in this pass — review the code before deploying to production. Unit tests for the `utils/preprocess.py` helpers live in `tests/test_preprocess.py` (run with `pytest`); the Streamlit pages themselves are not covered by automated tests.
