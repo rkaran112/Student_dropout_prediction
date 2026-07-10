@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-from utils.preprocess import load_model_artifacts, FEATURE_COLUMNS, compute_risk_category
+from utils.preprocess import load_model_artifacts
 
 st.set_page_config(
     page_title="Smart Student Dropout Predictor",
