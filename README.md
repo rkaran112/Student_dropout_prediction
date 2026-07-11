@@ -20,7 +20,7 @@ The home page (`app.py`) shows summary stats (dataset size, observed dropout rat
 - **scikit-learn** (`RandomForestClassifier`) — classification model
 - **imbalanced-learn** (SMOTE) — handles class imbalance in training
 - **pandas / numpy** — data handling
-- **plotly / matplotlib / seaborn** — visualizations
+- **plotly** — visualizations
 - **shap** — model explainability
 - **joblib** — model/scaler persistence
 
