@@ -1,16 +1,20 @@
 import sys
 from pathlib import Path
 
+import joblib
 import pandas as pd
+import pytest
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import utils.preprocess as preprocess
 from utils.preprocess import (
     CATEGORICAL_COLUMNS,
     FEATURE_COLUMNS,
     build_single_input_dataframe,
     compute_risk_category,
+    load_model_artifacts,
     prepare_features_from_df,
     recommendation_for_risk,
 )
@@ -144,3 +148,20 @@ def test_prepare_features_from_df_encodes_and_scales():
     # Numeric columns should match the fitted scaler's own transform.
     expected_numeric = artifacts["scaler"].transform(raw[numeric_cols])
     assert (X_df[numeric_cols].values == expected_numeric).all()
+
+
+def test_load_model_artifacts_raises_when_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(preprocess, "MODEL_PATH", tmp_path / "does_not_exist.pkl")
+
+    with pytest.raises(FileNotFoundError, match="Run model/train_model.py first"):
+        load_model_artifacts()
+
+
+def test_load_model_artifacts_loads_existing_file(monkeypatch, tmp_path):
+    model_path = tmp_path / "dropout_model.pkl"
+    joblib.dump({"feature_columns": FEATURE_COLUMNS}, model_path)
+    monkeypatch.setattr(preprocess, "MODEL_PATH", model_path)
+
+    artifacts = load_model_artifacts()
+
+    assert artifacts == {"feature_columns": FEATURE_COLUMNS}
