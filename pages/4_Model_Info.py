@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import plotly.express as px
 import plotly.figure_factory as ff

@@ -16,7 +16,7 @@ st.title("🧍 Individual Student Dropout Risk Predictor")
 try:
     artifacts = load_model_artifacts()
     model = artifacts["model"]
-except Exception as e:
+except Exception:
     st.error(
         "Model not found. Please run the training script (model/train_model.py) before using this page."
     )
@@ -109,5 +109,5 @@ if submitted:
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         st.plotly_chart(fig, use_container_width=True)
 
-    except Exception as e:
+    except Exception:
         st.warning("Could not compute SHAP explanation. Showing only the prediction.")
