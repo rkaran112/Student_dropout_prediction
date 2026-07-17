@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import joblib
@@ -18,34 +19,18 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
-
 BASE_DIR = Path(__file__).resolve().parents[1]
+
+# Allow running this file directly (`python model/train_model.py`), where only
+# this file's own directory is added to sys.path by default.
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from utils.preprocess import CATEGORICAL_COLUMNS, FEATURE_COLUMNS  # noqa: E402
+
 DATA_PATH = BASE_DIR / "data" / "dataset.csv"
 MODEL_DIR = BASE_DIR / "model"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
-
-
-FEATURE_COLUMNS = [
-    "Age at enrollment",
-    "Gender",
-    "Scholarship holder",
-    "Tuition fees up to date",
-    "Curricular units 1st sem (approved)",
-    "Curricular units 2nd sem (approved)",
-    "Curricular units 2nd sem (grade)",
-    "Debtor",
-    "Displaced",
-    "Unemployment rate",
-    "GDP",
-]
-
-CATEGORICAL_COLUMNS = [
-    "Gender",
-    "Scholarship holder",
-    "Tuition fees up to date",
-    "Debtor",
-    "Displaced",
-]
 
 
 def load_data() -> pd.DataFrame:
