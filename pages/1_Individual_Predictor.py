@@ -39,7 +39,10 @@ with st.form("individual_predictor_form"):
         gpa_sem2 = st.slider("GPA - Semester 2 Grade", 0.0, 20.0, 12.0)
         unemployment_rate = st.slider("Unemployment Rate", 0.0, 25.0, 7.5)
 
-    gdp = st.slider("GDP", 0.0, 100000.0, 20000.0)
+    # The UCI dataset's "GDP" column is a GDP growth rate (%), not an absolute
+    # GDP figure, so the slider range must match that scale (observed range in
+    # the training data is roughly -4.06 to 3.51).
+    gdp = st.slider("GDP Growth Rate (%)", -5.0, 5.0, 0.0, step=0.01)
 
     submitted = st.form_submit_button("Predict")
 
