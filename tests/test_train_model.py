@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+import joblib
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -80,3 +82,63 @@ def test_preprocess_encodes_and_scales_features():
     # Numeric columns should be scaled to zero mean via the fitted StandardScaler.
     assert X[numeric_cols].values.mean(axis=0) == pytest.approx(0.0, abs=1e-8)
     assert (X[numeric_cols].values == scaler.transform(raw[numeric_cols])).all()
+
+
+def _synthetic_dataset(n_per_class=30):
+    rng = np.random.RandomState(0)
+    n = n_per_class * 2
+    targets = ["Dropout"] * n_per_class + ["Graduate"] * n_per_class
+
+    df = pd.DataFrame(
+        {
+            "Age at enrollment": rng.randint(18, 45, size=n),
+            "Gender": rng.randint(0, 2, size=n),
+            "Scholarship holder": rng.randint(0, 2, size=n),
+            "Tuition fees up to date": rng.randint(0, 2, size=n),
+            "Curricular units 1st sem (approved)": rng.randint(0, 10, size=n),
+            "Curricular units 2nd sem (approved)": rng.randint(0, 10, size=n),
+            "Curricular units 2nd sem (grade)": rng.uniform(0, 20, size=n),
+            "Debtor": rng.randint(0, 2, size=n),
+            "Displaced": rng.randint(0, 2, size=n),
+            "Unemployment rate": rng.uniform(5, 15, size=n),
+            "GDP": rng.uniform(-4, 3.5, size=n),
+            "Target": targets,
+        }
+    )
+    return df.sample(frac=1, random_state=0).reset_index(drop=True)
+
+
+def test_train_saves_artifacts_with_expected_metrics(monkeypatch, tmp_path):
+    data_path = tmp_path / "dataset.csv"
+    _synthetic_dataset().to_csv(data_path, sep=";", index=False)
+
+    model_dir = tmp_path / "model_out"
+    model_dir.mkdir()
+
+    monkeypatch.setattr(train_model, "DATA_PATH", data_path)
+    monkeypatch.setattr(train_model, "MODEL_DIR", model_dir)
+
+    train_model.train()
+
+    artifacts_path = model_dir / "dropout_model.pkl"
+    assert artifacts_path.exists()
+    assert (model_dir / "scaler.pkl").exists()
+    assert (model_dir / "metrics.txt").exists()
+
+    artifacts = joblib.load(artifacts_path)
+    assert set(["model", "scaler", "encoders", "feature_columns", "categorical_columns", "numeric_columns", "metrics"]) <= set(artifacts.keys())
+    assert artifacts["feature_columns"] == FEATURE_COLUMNS
+    assert artifacts["categorical_columns"] == CATEGORICAL_COLUMNS
+
+    metrics = artifacts["metrics"]
+    for key in ("accuracy", "precision", "recall", "f1", "roc_auc"):
+        assert 0.0 <= metrics[key] <= 1.0
+
+    assert metrics["n_train"] + metrics["n_test"] == 60
+    dist = metrics["class_distribution"]
+    assert dist["train_positive"] + dist["test_positive"] == 30
+    assert dist["train_negative"] + dist["test_negative"] == 30
+
+    metrics_text = (model_dir / "metrics.txt").read_text(encoding="utf-8")
+    assert "Accuracy:" in metrics_text
+    assert "ROC-AUC:" in metrics_text
